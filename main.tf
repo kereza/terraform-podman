@@ -1,6 +1,6 @@
 locals {
   user = var.run_via_root ? "root:root" : "${system_user.user[0].uid}:${system_group.group[0].gid}"
-  
+
   container_arguments = [
     "/usr/bin/podman run",
     "--rm",
@@ -10,12 +10,12 @@ locals {
     "--net start9",
   ]
 
-  config_folders = [for folder in keys(var.file_mounts): dirname(folder)]
-  file_mounts = [for k, v in var.file_mounts: "-v ${k}:${v}"]
-  folder_mounts = [for k, v in var.folder_mounts: "-v ${k}:${v}"]
-  env_variables = [for k, v in var.env_variables: "-e ${k}=${v}"]
+  config_folders = [for folder in keys(var.file_mounts) : dirname(folder)]
+  file_mounts    = [for k, v in var.file_mounts : "-v ${k}:${v}"]
+  folder_mounts  = [for k, v in var.folder_mounts : "-v ${k}:${v}"]
+  env_variables  = [for k, v in var.env_variables : "-e ${k}=${v}"]
 
-  exec_start = join(" \\\n  ", local.container_arguments, local.file_mounts, local.folder_mounts, local.env_variables, var.port_exposed, [var.image_version], var.service_arguments )
+  exec_start = join(" \\\n  ", local.container_arguments, local.file_mounts, local.folder_mounts, local.env_variables, var.port_exposed, [var.image_version], var.service_arguments)
 }
 
 resource "system_file" "file" {
@@ -41,15 +41,15 @@ resource "system_service_systemd" "service" {
 
 resource "system_user" "user" {
   count = var.run_via_root ? 0 : 1
-  name   = var.service_name
-  home   = "/home/${var.service_name}"
-  gid    = system_group.group[0].gid
-  shell  = "/usr/sbin/nologin"
+  name  = var.service_name
+  home  = "/home/${var.service_name}"
+  gid   = system_group.group[0].gid
+  shell = "/usr/sbin/nologin"
 }
 
 resource "system_group" "group" {
   count = var.run_via_root ? 0 : 1
-  name   = var.service_name
+  name  = var.service_name
 }
 
 resource "system_folder" "home_folder" {
@@ -61,9 +61,9 @@ resource "system_folder" "home_folder" {
 
 resource "system_folder" "folder_mounts" {
   for_each = var.create_folder_mounts ? toset(concat(local.config_folders, keys(var.folder_mounts))) : toset([])
-  path = each.key
-  group = var.run_via_root ? "root" : (system_user.user[0].name )
-  user  = var.run_via_root ? "root" : system_user.user[0].name
+  path     = each.key
+  group    = var.run_via_root ? "root" : (system_user.user[0].name)
+  user     = var.run_via_root ? "root" : system_user.user[0].name
   depends_on = [
     system_folder.home_folder
   ]
@@ -71,10 +71,10 @@ resource "system_folder" "folder_mounts" {
 
 resource "system_file" "configs_mounts" {
   for_each = var.file_mounts
-  path   = each.key
-  source = "${var.path_config_files}/config/${var.service_name}/${basename(each.value)}"
-  group = var.run_via_root ? "root" : system_group.group[0].name
-  user  = var.run_via_root ? "root" : system_user.user[0].name
+  path     = each.key
+  source   = "${var.path_config_files}/config/${var.service_name}/${basename(each.value)}"
+  group    = var.run_via_root ? "root" : system_group.group[0].name
+  user     = var.run_via_root ? "root" : system_user.user[0].name
   depends_on = [
     system_folder.folder_mounts
   ]

@@ -7,9 +7,9 @@ output "group_id" {
 }
 
 output "folders_created" {
-  value = [ for k, v in system_folder.folder_mounts: v.path]
+  value = [for k, v in system_folder.folder_mounts : v.path]
 }
 
 output "files_copied" {
-  value = [ for k, v in system_file.configs_mounts: v.path]
+  value = [for k, v in system_file.configs_mounts : v.path]
 }

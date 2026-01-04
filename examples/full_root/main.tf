@@ -4,10 +4,10 @@ module "ghost" {
   service_status = "started"
 
   image_version = "docker.io/library/ghost:latest"
-  service_name = "ghost"
+  service_name  = "ghost"
 
   path_config_files = path.module
-  port_exposed = ["-p 3700:2369"]
+  port_exposed      = ["-p 3700:2369"]
   env_variables = {
     "url" : "https://example.com.com",
     "database__client" : "sqlite3",
