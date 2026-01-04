@@ -60,7 +60,7 @@ resource "system_folder" "home_folder" {
 }
 
 resource "system_folder" "folder_mounts" {
-  for_each = toset(concat(local.config_folders, keys(var.folder_mounts)))
+  for_each = var.create_folder_mounts ? toset(concat(local.config_folders, keys(var.folder_mounts))) : toset([])
   path = each.key
   group = var.run_via_root ? "root" : (system_user.user[0].name )
   user  = var.run_via_root ? "root" : system_user.user[0].name

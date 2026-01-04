@@ -55,3 +55,9 @@ variable "port_exposed" {
   type = list
   default = []
 }
+
+variable "create_folder_mounts" {
+  description = "A flag which if FALSE will NOT create the directories mounted. Needed in very special cases"
+  type = bool
+  default = true
+}
