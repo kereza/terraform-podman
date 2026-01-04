@@ -1,0 +1,33 @@
+{
+  "url": "https://example.com",
+  "server": {
+    "port": 2369,
+    "host": "::"
+  },
+  "mail": {
+    "transport": "SMTP",
+    "from": "Ghost Blog <no-reply@funtechi.com>",
+    "options": {
+      "host": "smtp.gmail.com",
+      "port": 587,
+      "secure": false,
+      "auth": {
+        "user": "example@gmail.com",
+        "pass": "password"
+      }
+    }
+  },
+  "logging": {
+    "transports": [
+      "file",
+      "stdout"
+    ]
+  },
+  "process": "systemd",
+  "security": {
+    "staffDeviceVerification": true
+  },
+  "paths": {
+    "contentPath": "/var/lib/ghost/content"
+  }
+}

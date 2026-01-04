@@ -1,0 +1,15 @@
+[Unit]
+Description=Podman container-${service_name}.service
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=%t/containers
+
+[Service]
+Restart=always
+TimeoutStopSec=70
+ExecStart=${exec_start}
+
+ExecStop=/usr/bin/podman stop -t 10 ${service_name}
+
+[Install]
+WantedBy=default.target

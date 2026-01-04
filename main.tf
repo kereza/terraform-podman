@@ -1,0 +1,81 @@
+locals {
+  user = var.run_via_root ? "root:root" : "${system_user.user[0].uid}:${system_group.group[0].gid}"
+  
+  container_arguments = [
+    "/usr/bin/podman run",
+    "--rm",
+    "--replace",
+    "--name=${var.service_name}",
+    "--user ${local.user}",
+    "--net start9",
+  ]
+
+  config_folders = [for folder in keys(var.file_mounts): dirname(folder)]
+  file_mounts = [for k, v in var.file_mounts: "-v ${k}:${v}"]
+  folder_mounts = [for k, v in var.folder_mounts: "-v ${k}:${v}"]
+  env_variables = [for k, v in var.env_variables: "-e ${k}=${v}"]
+
+  exec_start = join(" \\\n  ", local.container_arguments, local.file_mounts, local.folder_mounts, local.env_variables, var.port_exposed, [var.image_version], var.service_arguments )
+}
+
+resource "system_file" "file" {
+  path  = "/etc/systemd/system/container-${var.service_name}.service"
+  mode  = 644
+  user  = "root"
+  group = "root"
+  content = templatefile("${path.module}/container.service.tftpl", {
+    exec_start   = local.exec_start,
+    service_name = var.service_name
+  })
+}
+
+resource "system_service_systemd" "service" {
+  name    = trimsuffix(system_file.file.basename, ".service")
+  enabled = true
+  status  = var.service_status
+  depends_on = [
+    system_file.configs_mounts,
+    system_folder.folder_mounts
+  ]
+}
+
+resource "system_user" "user" {
+  count = var.run_via_root ? 0 : 1
+  name   = var.service_name
+  home   = "/home/${var.service_name}"
+  gid    = system_group.group[0].gid
+  shell  = "/usr/sbin/nologin"
+}
+
+resource "system_group" "group" {
+  count = var.run_via_root ? 0 : 1
+  name   = var.service_name
+}
+
+resource "system_folder" "home_folder" {
+  count = var.run_via_root ? 0 : 1
+  path  = system_user.user[0].home
+  group = system_group.group[0].name
+  user  = system_user.user[0].name
+}
+
+resource "system_folder" "folder_mounts" {
+  for_each = toset(concat(local.config_folders, keys(var.folder_mounts)))
+  path = each.key
+  group = var.run_via_root ? "root" : (system_user.user[0].name )
+  user  = var.run_via_root ? "root" : system_user.user[0].name
+  depends_on = [
+    system_folder.home_folder
+  ]
+}
+
+resource "system_file" "configs_mounts" {
+  for_each = var.file_mounts
+  path   = each.key
+  source = "${var.path_config_files}/config/${var.service_name}/${basename(each.value)}"
+  group = var.run_via_root ? "root" : system_group.group[0].name
+  user  = var.run_via_root ? "root" : system_user.user[0].name
+  depends_on = [
+    system_folder.folder_mounts
+  ]
+}
