@@ -7,7 +7,6 @@ locals {
     "--replace",
     "--name=${var.service_name}",
     "--user ${local.user}",
-    "--net start9",
   ]
 
   config_folders = [for folder in keys(var.file_mounts) : dirname(folder)]
