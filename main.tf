@@ -9,7 +9,7 @@ locals {
     "--user ${local.user}"
   ]
 
-  custom_network = var.custom_network == "" ? [] : ["--net", var.custom_network]
+  custom_network = var.custom_network == "" ? [] : ["--net ${var.custom_network}"]
   config_folders = [for folder in keys(var.file_mounts) : dirname(folder)]
   file_mounts    = [for k, v in var.file_mounts : "-v ${k}:${v}"]
   folder_mounts  = [for k, v in var.folder_mounts : "-v ${k}:${v}"]
