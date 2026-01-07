@@ -6,16 +6,16 @@ locals {
     "--rm",
     "--replace",
     "--name=${var.service_name}",
-    "--user ${local.user}",
-    "--net ${var.custom_network}",
+    "--user ${local.user}"
   ]
 
+  custom_network = var.custom_network == "" ? [] : ["--net", var.custom_network]
   config_folders = [for folder in keys(var.file_mounts) : dirname(folder)]
   file_mounts    = [for k, v in var.file_mounts : "-v ${k}:${v}"]
   folder_mounts  = [for k, v in var.folder_mounts : "-v ${k}:${v}"]
   env_variables  = [for k, v in var.env_variables : "-e ${k}=${v}"]
 
-  exec_start = join(" \\\n  ", local.container_arguments, local.file_mounts, local.folder_mounts, local.env_variables, var.port_exposed, [var.image_version], var.service_arguments)
+  exec_start = join(" \\\n  ", local.container_arguments, local.custom_network, local.file_mounts, local.folder_mounts, local.env_variables, var.port_exposed, [var.image_version], var.service_arguments)
 }
 
 resource "system_file" "file" {

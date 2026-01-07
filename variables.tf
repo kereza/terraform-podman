@@ -64,6 +64,6 @@ variable "create_folder_mounts" {
 
 variable "custom_network" {
   description = "Run the container in a specific network"
-  type        = list(string)
-  default     = []
+  type        = string
+  default     = ""
 }
