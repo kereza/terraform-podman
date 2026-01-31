@@ -27,8 +27,7 @@ This module requires the `neuspaces/system` provider, which executes system comm
 provider "system" {
   host = "your-remote-host.com"
   user = "terraform"
-  # or use SSH key:
-  # private_key = file("~/.ssh/id_rsa")
+  private_key = file("~/.ssh/id_rsa")
 }
 ```
 
