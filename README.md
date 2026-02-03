@@ -35,12 +35,12 @@ provider "system" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| `service_name` | Name of the service and container | `string` | n/a | yes |
-| `image_version` | Container image name and version (e.g., `docker.io/library/nginx:latest`) | `string` | n/a | yes |
+| `service_name` | Name of the service and container. Must be lowercase alphanumeric with hyphens, cannot start or end with hyphen | `string` | n/a | yes |
+| `image_version` | Container image in format `registry/image:tag` (e.g., `docker.io/library/nginx:latest`) | `string` | n/a | yes |
 | `run_via_root` | Run container as root user. If false, a dedicated system user is created | `bool` | `false` | no |
 | `service_arguments` | Additional arguments passed to the container application on startup | `list(string)` | `[]` | no |
 | `env_variables` | Environment variables to pass to the container | `map(string)` | `{}` | no |
-| `folder_mounts` | Host directories to mount into the container (host_path => container_path) | `map(string)` | `{}` | no |
+| `folder_mounts` | Host directories to mount into the container (host_path => container_path). Both paths must be absolute | `map(string)` | `{}` | no |
 | `file_mounts` | Configuration files to mount with template support. See [Configuration File Templating](#configuration-file-templating) section | `map(object({`<br>`source_path = string`<br>`host_path = string`<br>`container_path = string`<br>`template_vars = optional(map(string))`<br>`}))` | `{}` | no |
 | `custom_network` | Podman network name to attach the container to (uses default bridge network if empty) | `string` | `""` | no |
 | `port_exposed` | List of port mappings (e.g., `["-p 8080:80", "-p 8443:443"]`) | `list(string)` | `[]` | no |
@@ -342,8 +342,9 @@ Generated systemd services (`/etc/systemd/system/container-{service_name}.servic
 ### Security
 - **Use Non-Root Users**: Set `run_via_root = false` whenever possible to run containers with limited privileges
 - **Limit Mount Points**: Only mount directories and files that the container absolutely needs
-- **Use Absolute Paths**: Always use absolute paths for `host_path` and `container_path` (enforced by validation)
+- **Use Absolute Paths**: Always use absolute paths for mounts (enforced by validation)
 - **Review Port Exposure**: Only expose ports that are necessary for your application
+- **Valid Service Names**: Use lowercase alphanumeric names with hyphens only (enforced by validation)
 
 ### Configuration Management
 - **Use Templates for Dynamic Config**: Leverage `template_vars` for environment-specific values
