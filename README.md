@@ -39,7 +39,6 @@ provider "system" {
 | `image_version` | Container image name and version (e.g., `docker.io/library/nginx:latest`) | `string` | - | yes |
 | `run_via_root` | Run container as root user | `bool` | `false` | no |
 | `service_arguments` | Additional arguments passed to the application on startup | `list(string)` | `[]` | no |
-| `service_status` | Systemd service status (`started` or `stopped`) | `string` | `"started"` | no |
 | `env_variables` | Environment variables passed to the container | `map(string)` | `{}` | no |
 | `folder_mounts` | Host directories to mount into the container (host_path => container_path) | `map(string)` | `{}` | no |
 | `file_mounts` | Configuration files to mount with template support (see Configuration File Templating section) | `map(object({source_path=string, host_path=string, container_path=string, template_vars=optional(map(string))}))` | `{}` | no |
@@ -77,10 +76,9 @@ module "nginx" {
 module "prometheus" {
   source = "./"
 
-  service_name   = "prometheus"
-  image_version  = "docker.io/prom/prometheus:v3.5.0"
-  run_via_root   = false
-  service_status = "started"
+  service_name  = "prometheus"
+  image_version = "docker.io/prom/prometheus:v3.5.0"
+  run_via_root  = false
 
   service_arguments = [
     "--storage.tsdb.path=/prometheus",
@@ -153,7 +151,7 @@ module "ghost" {
 4. **Systemd Service**:
    - Generates a systemd service file at `/etc/systemd/system/container-{service_name}.service`
    - Configures automatic restart, proper stopping, and dependency ordering
-   - Enables and starts/stops the service based on `service_status`
+   - Automatically starts the service and restarts when config files or service definition changes
 
 ## Configuration File Templating
 

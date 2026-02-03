@@ -1,8 +1,6 @@
 module "ghost" {
   source = "../../"
 
-  service_status = "started"
-
   image_version = "docker.io/library/ghost:latest"
   service_name  = "ghost"
 

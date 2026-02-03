@@ -14,12 +14,6 @@ variable "service_arguments" {
   default     = []
 }
 
-variable "service_status" {
-  description = "System start or stop the service"
-  type        = string
-  default     = "started"
-}
-
 variable "run_via_root" {
   description = "If the container will be run from ROOT user. If that is false - a special user will be creted with service name"
   type        = bool

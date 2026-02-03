@@ -32,7 +32,15 @@ resource "system_file" "file" {
 resource "system_service_systemd" "service" {
   name    = trimsuffix(system_file.file.basename, ".service")
   enabled = true
-  status  = var.service_status
+  status  = "started"
+
+  lifecycle {
+    replace_triggered_by = [
+      system_file.file,
+      system_file.configs_mounts
+    ]
+  }
+
   depends_on = [
     system_file.configs_mounts,
     system_folder.folder_mounts
