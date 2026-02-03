@@ -39,9 +39,9 @@ resource "system_service_systemd" "service" {
   # Without hashing, terraform shows entire file diffs in plan output
   restart_on = toset([
     sha256(system_file.file.content),
-    sha256(jsonencode({
-      for k, v in system_file.configs_mounts : k => sha256(v.content)
-    }))
+    sha256(jsonencode([
+      for v in system_file.configs_mounts : v.content
+    ]))
   ])
 
   depends_on = [
