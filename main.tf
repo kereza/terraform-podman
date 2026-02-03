@@ -34,12 +34,12 @@ resource "system_service_systemd" "service" {
   enabled = true
   status  = "started"
 
-  restart_on = {
-    service_file = system_file.file.content
-    config_files = jsonencode({
+  restart_on = toset([
+    system_file.file.content,
+    jsonencode({
       for k, v in system_file.configs_mounts : k => v.content
     })
-  }
+  ])
 
   depends_on = [
     system_file.configs_mounts,
