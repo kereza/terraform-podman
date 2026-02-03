@@ -34,11 +34,11 @@ resource "system_service_systemd" "service" {
   enabled = true
   status  = "started"
 
-  lifecycle {
-    replace_triggered_by = [
-      system_file.file,
-      system_file.configs_mounts
-    ]
+  restart_on = {
+    service_file = system_file.file.content
+    config_files = jsonencode({
+      for k, v in system_file.configs_mounts : k => v.content
+    })
   }
 
   depends_on = [
