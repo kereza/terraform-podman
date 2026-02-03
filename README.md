@@ -42,8 +42,8 @@ provider "system" {
 | `service_status` | Systemd service status (`started` or `stopped`) | `string` | `"started"` | no |
 | `env_variables` | Environment variables passed to the container | `map(string)` | `{}` | no |
 | `folder_mounts` | Host directories to mount into the container (host_path => container_path) | `map(string)` | `{}` | no |
-| `file_mounts` | Host files to mount into the container (host_path => container_path) | `map(string)` | `{}` | no |
-| `path_config_files` | Base path where config files are located | `string` | `""` | no |
+| `file_mounts` | Configuration files to mount with template support (see Configuration File Templating section) | `map(object({source_path=string, host_path=string, container_path=string, template_vars=optional(map(string))}))` | `{}` | no |
+| `path_config_files` | (Deprecated) Base path where config files are located | `string` | `""` | no |
 | `port_exposed` | List of port mappings (e.g., `["-p 8080:80"]`) | `list(any)` | `[]` | no |
 | `create_folder_mounts` | Automatically create mounted directories if they don't exist | `bool` | `true` | no |
 
@@ -77,11 +77,10 @@ module "nginx" {
 module "prometheus" {
   source = "./"
 
-  service_name     = "prometheus"
-  image_version    = "docker.io/prom/prometheus:v3.5.0"
-  run_via_root     = false
-  service_status   = "started"
-  path_config_files = path.module
+  service_name   = "prometheus"
+  image_version  = "docker.io/prom/prometheus:v3.5.0"
+  run_via_root   = false
+  service_status = "started"
 
   service_arguments = [
     "--storage.tsdb.path=/prometheus",
@@ -94,7 +93,11 @@ module "prometheus" {
   }
 
   file_mounts = {
-    "/root/config/prometheus.yml" : "/etc/prometheus/prometheus.yml"
+    prometheus_config = {
+      source_path    = "${path.module}/config/prometheus/prometheus.yml"
+      host_path      = "/root/config/prometheus.yml"
+      container_path = "/etc/prometheus/prometheus.yml"
+    }
   }
 
   env_variables = {
@@ -109,18 +112,21 @@ module "prometheus" {
 module "ghost" {
   source = "./"
 
-  service_name      = "ghost"
-  image_version     = "docker.io/library/ghost:5.54.0"
-  run_via_root      = false
-  path_config_files = path.module
-  port_exposed      = ["-p 2368:2368"]
+  service_name = "ghost"
+  image_version = "docker.io/library/ghost:5.54.0"
+  run_via_root = false
+  port_exposed = ["-p 2368:2368"]
 
   folder_mounts = {
     "/var/ghost/content" : "/var/lib/ghost/content"
   }
 
   file_mounts = {
-    "/etc/ghost/config.production.json" : "/var/lib/ghost/config.production.json"
+    ghost_config = {
+      source_path    = "${path.module}/config/ghost/config.production.json"
+      host_path      = "/etc/ghost/config.production.json"
+      container_path = "/var/lib/ghost/config.production.json"
+    }
   }
 
   env_variables = {
@@ -140,12 +146,95 @@ module "ghost" {
    - Sets proper ownership and permissions
 
 3. **Configuration Files**:
-   - Copies config files from `path_config_files/config/{service_name}/` to container mount paths
+   - Renders config files using Terraform's `templatefile()` function
+   - Supports both static files and dynamic templates with variables
+   - Copies rendered files to specified host paths
 
 4. **Systemd Service**:
    - Generates a systemd service file at `/etc/systemd/system/container-{service_name}.service`
    - Configures automatic restart, proper stopping, and dependency ordering
    - Enables and starts/stops the service based on `service_status`
+
+## Configuration File Templating
+
+The module supports Terraform's `templatefile()` function for dynamic configuration generation. This allows you to create reusable, environment-specific configurations.
+
+### Structure
+
+Each entry in `file_mounts` requires:
+- **source_path**: Path to your template or static config file
+- **host_path**: Absolute path where the file will be placed on the remote host
+- **container_path**: Absolute path where the file will be mounted in the container
+- **template_vars**: (Optional) Map of variables to interpolate in the template
+
+### Example: Static Configuration
+
+For simple config files without templating:
+
+```hcl
+file_mounts = {
+  nginx_conf = {
+    source_path    = "${path.module}/config/nginx.conf"
+    host_path      = "/etc/myapp/nginx.conf"
+    container_path = "/etc/nginx/nginx.conf"
+  }
+}
+```
+
+### Example: Templated Configuration
+
+For dynamic configs with variables, create a `.tftpl` template file:
+
+**Template file** (`templates/app.yaml.tftpl`):
+```yaml
+database:
+  host: ${database_host}
+  port: ${database_port}
+logging:
+  level: ${log_level}
+```
+
+**Module usage**:
+```hcl
+file_mounts = {
+  app_config = {
+    source_path    = "${path.module}/templates/app.yaml.tftpl"
+    host_path      = "/etc/myapp/config.yaml"
+    container_path = "/app/config.yaml"
+    template_vars = {
+      database_host = "db.example.com"
+      database_port = "5432"
+      log_level     = var.environment == "production" ? "WARN" : "DEBUG"
+    }
+  }
+}
+```
+
+### Multiple Configuration Files
+
+You can mount multiple config files with different sources:
+
+```hcl
+file_mounts = {
+  # Static config
+  nginx_conf = {
+    source_path    = "${path.module}/config/nginx.conf"
+    host_path      = "/etc/app/nginx.conf"
+    container_path = "/etc/nginx/nginx.conf"
+  }
+
+  # Templated config
+  app_config = {
+    source_path    = "${path.module}/templates/app.yaml.tftpl"
+    host_path      = "/etc/app/config.yaml"
+    container_path = "/app/config.yaml"
+    template_vars = {
+      environment = "production"
+      region      = "us-east-1"
+    }
+  }
+}
+```
 
 ## Service File Details
 

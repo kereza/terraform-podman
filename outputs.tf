@@ -13,3 +13,14 @@ output "folders_created" {
 output "files_copied" {
   value = [for k, v in system_file.configs_mounts : v.path]
 }
+
+output "config_files_deployed" {
+  description = "Map of deployed configuration files"
+  value = {
+    for k, v in var.file_mounts : k => {
+      host_path      = v.host_path
+      container_path = v.container_path
+      source         = v.source_path
+    }
+  }
+}

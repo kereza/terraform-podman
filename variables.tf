@@ -39,9 +39,27 @@ variable "folder_mounts" {
 }
 
 variable "file_mounts" {
-  description = "Files to be mounted in the containers from the host"
-  type        = map(string)
-  default     = {}
+  description = "Configuration files to mount in the container with template support"
+  type = map(object({
+    source_path    = string
+    host_path      = string
+    container_path = string
+    template_vars  = optional(map(string), {})
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.file_mounts : (
+        length(v.source_path) > 0 &&
+        length(v.host_path) > 0 &&
+        length(v.container_path) > 0 &&
+        startswith(v.host_path, "/") &&
+        startswith(v.container_path, "/")
+      )
+    ])
+    error_message = "All paths must be non-empty, and host_path and container_path must be absolute paths."
+  }
 }
 
 variable "path_config_files" {

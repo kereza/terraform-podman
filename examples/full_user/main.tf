@@ -12,12 +12,14 @@ module "prometheus" {
     "--config.file=/etc/prometheus/prometheus.yml"
   ]
 
-  path_config_files = path.module
-
   folder_mounts = {
     "/root/data" : "/prometheus"
   }
   file_mounts = {
-    "/root/config/prometheus.yml" : "/etc/prometheus/prometheus.yml"
+    prometheus_config = {
+      source_path    = "${path.module}/config/prometheus/prometheus.yml"
+      host_path      = "/root/config/prometheus.yml"
+      container_path = "/etc/prometheus/prometheus.yml"
+    }
   }
 }

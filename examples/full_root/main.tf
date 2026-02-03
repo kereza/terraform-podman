@@ -6,8 +6,7 @@ module "ghost" {
   image_version = "docker.io/library/ghost:latest"
   service_name  = "ghost"
 
-  path_config_files = path.module
-  port_exposed      = ["-p 3700:2369"]
+  port_exposed = ["-p 3700:2369"]
   env_variables = {
     "url" : "https://example.com.com",
     "database__client" : "sqlite3",
@@ -18,6 +17,10 @@ module "ghost" {
     "/home/ghost/data" : "/var/lib/ghost/content"
   }
   file_mounts = {
-    "/home/ghost/config/config.production.json" : "/var/lib/ghost/config.production.json"
+    ghost_config = {
+      source_path    = "${path.module}/config/ghost/config.production.json"
+      host_path      = "/home/ghost/config/config.production.json"
+      container_path = "/var/lib/ghost/config.production.json"
+    }
   }
 }

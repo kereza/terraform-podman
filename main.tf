@@ -10,8 +10,8 @@ locals {
   ]
 
   custom_network = var.custom_network == "" ? [] : ["--net ${var.custom_network}"]
-  config_folders = [for folder in keys(var.file_mounts) : dirname(folder)]
-  file_mounts    = [for k, v in var.file_mounts : "-v ${k}:${v}"]
+  config_folders = [for k, v in var.file_mounts : dirname(v.host_path)]
+  file_mounts    = [for k, v in var.file_mounts : "-v ${v.host_path}:${v.container_path}"]
   folder_mounts  = [for k, v in var.folder_mounts : "-v ${k}:${v}"]
   env_variables  = [for k, v in var.env_variables : "-e ${k}=${v}"]
 
@@ -71,8 +71,8 @@ resource "system_folder" "folder_mounts" {
 
 resource "system_file" "configs_mounts" {
   for_each = var.file_mounts
-  path     = each.key
-  source   = "${var.path_config_files}/config/${var.service_name}/${basename(each.value)}"
+  path     = each.value.host_path
+  content  = templatefile(each.value.source_path, each.value.template_vars)
   group    = var.run_via_root ? "root" : system_group.group[0].name
   user     = var.run_via_root ? "root" : system_user.user[0].name
   depends_on = [
