@@ -34,11 +34,14 @@ resource "system_service_systemd" "service" {
   enabled = true
   status  = "started"
 
+  # Restart service when systemd file or config files change
+  # Using SHA256 hashes instead of full content to keep terraform plan output clean
+  # Without hashing, terraform shows entire file diffs in plan output
   restart_on = toset([
-    system_file.file.content,
-    jsonencode({
-      for k, v in system_file.configs_mounts : k => v.content
-    })
+    sha256(system_file.file.content),
+    sha256(jsonencode({
+      for k, v in system_file.configs_mounts : k => sha256(v.content)
+    }))
   ])
 
   depends_on = [
