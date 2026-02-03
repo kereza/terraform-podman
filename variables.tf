@@ -1,11 +1,21 @@
 variable "service_name" {
   description = "The name of the service which the container runs"
   type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.service_name))
+    error_message = "Service name must be lowercase alphanumeric with hyphens, and cannot start or end with a hyphen."
+  }
 }
 
 variable "image_version" {
   description = "The container name and version"
   type        = string
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$", var.image_version))
+    error_message = "The image_version must be in format 'registry/image:tag' (e.g., 'docker.io/library/nginx:latest')."
+  }
 }
 
 variable "service_arguments" {
@@ -15,7 +25,7 @@ variable "service_arguments" {
 }
 
 variable "run_via_root" {
-  description = "If the container will be run from ROOT user. If that is false - a special user will be creted with service name"
+  description = "If the container will be run from ROOT user. If that is false - a special user will be created with service name"
   type        = bool
   default     = false
 }
@@ -30,6 +40,15 @@ variable "folder_mounts" {
   description = "Folders to be mounted in the containers from the host"
   type        = map(string)
   default     = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.folder_mounts : (
+        startswith(k, "/") && startswith(v, "/")
+      )
+    ])
+    error_message = "Both host paths (keys) and container paths (values) must be absolute paths starting with '/'."
+  }
 }
 
 variable "file_mounts" {
@@ -63,8 +82,8 @@ variable "path_config_files" {
 }
 
 variable "port_exposed" {
-  description = "A list of ports to be eposed when the container starts"
-  type        = list(any)
+  description = "A list of ports to be exposed when the container starts"
+  type        = list(string)
   default     = []
 }
 

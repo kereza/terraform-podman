@@ -1,17 +1,21 @@
 output "user_id" {
-  value = var.run_via_root ? null : system_user.user[0].uid
+  description = "UID of the service user (null if run_via_root = true)"
+  value       = var.run_via_root ? null : system_user.user[0].uid
 }
 
 output "group_id" {
-  value = var.run_via_root ? null : system_group.group[0].gid
+  description = "GID of the service group (null if run_via_root = true)"
+  value       = var.run_via_root ? null : system_group.group[0].gid
 }
 
 output "folders_created" {
-  value = [for k, v in system_folder.folder_mounts : v.path]
+  description = "List of absolute paths to directories created for mounts"
+  value       = [for k, v in system_folder.folder_mounts : v.path]
 }
 
 output "files_copied" {
-  value = [for k, v in system_file.configs_mounts : v.path]
+  description = "List of absolute paths to configuration files deployed on the host"
+  value       = [for k, v in system_file.configs_mounts : v.path]
 }
 
 output "config_files_deployed" {
