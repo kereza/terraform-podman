@@ -13,8 +13,8 @@ variable "image_version" {
   type        = string
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$", var.image_version))
-    error_message = "The image_version must be in format 'registry/image:tag' (e.g., 'docker.io/library/nginx:latest')."
+    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9._/-]+(:[a-zA-Z0-9._-]+)?$", var.image_version))
+    error_message = "The image_version must be in format 'registry/image:tag' or 'registry/image' (e.g., 'docker.io/library/nginx:latest' or 'quay.io/prometheus/node-exporter')."
   }
 }
 

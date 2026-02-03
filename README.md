@@ -36,7 +36,7 @@ provider "system" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | `service_name` | Name of the service and container. Must be lowercase alphanumeric with hyphens, cannot start or end with hyphen | `string` | n/a | yes |
-| `image_version` | Container image in format `registry/image:tag` (e.g., `docker.io/library/nginx:latest`) | `string` | n/a | yes |
+| `image_version` | Container image in format `registry/image:tag` or `registry/image` (e.g., `docker.io/library/nginx:latest`). Tag defaults to `latest` if omitted | `string` | n/a | yes |
 | `run_via_root` | Run container as root user. If false, a dedicated system user is created | `bool` | `false` | no |
 | `service_arguments` | Additional arguments passed to the container application on startup | `list(string)` | `[]` | no |
 | `env_variables` | Environment variables to pass to the container | `map(string)` | `{}` | no |
