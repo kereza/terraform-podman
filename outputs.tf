@@ -28,3 +28,8 @@ output "config_files_deployed" {
     }
   }
 }
+
+output "service_name" {
+  description = "Name of the service"
+  value       = var.service_name
+}
