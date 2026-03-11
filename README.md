@@ -56,6 +56,7 @@ provider "system" {
 | `folders_created` | List of absolute paths to directories created for mounts | `list(string)` |
 | `files_copied` | List of absolute paths to configuration files deployed on the host | `list(string)` |
 | `config_files_deployed` | Map of deployed configuration files with source, host_path, and container_path | `map(object)` |
+| `service_name` | Name of the systemd service | `string` |
 
 ## Usage
 
@@ -352,17 +353,7 @@ Generated systemd services (`/etc/systemd/system/container-{service_name}.servic
 - **Test Changes Locally**: Test configuration changes before applying to production
 
 ### Operational
-- **Monitor Service Status**: Use `systemctl status container-{service_name}` to check service health
-- **Check Logs**: View container logs with `journalctl -u container-{service_name} -f`
 - **Plan Before Apply**: Always review `terraform plan` output before applying changes
-
-## Security Considerations
-
-- **Non-Root Execution** (recommended): Set `run_via_root = false` to run containers with limited privileges
-- **File Permissions**: Configuration files are owned by the service user/group with appropriate permissions
-- **User Shell**: Service users are created with `/usr/sbin/nologin` shell (no direct login access)
-- **Mount Isolation**: Use folder and file mounts to limit container access to specific host resources
-- **Network Isolation**: Use `custom_network` to isolate containers in specific Podman networks
 
 ## Common Operations
 
@@ -445,18 +436,7 @@ When you run `terraform destroy`, the module will:
 
 ## Version Compatibility
 
-| Module Version | Terraform Version | Provider Version |
-|---------------|------------------|------------------|
-| 1.x | >= 1.5.0 | neuspaces/system ~> 0.5.0 |
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with the examples
-5. Submit a pull request
+Requires Terraform >= 1.5.0 and `neuspaces/system` ~> 0.5.0.
 
 ## License
 
